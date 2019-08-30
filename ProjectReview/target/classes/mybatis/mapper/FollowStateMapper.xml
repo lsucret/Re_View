@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.FollowStateMapper">
+	<!-- 팔로우 했는지 확인하는 부분 -->
+	<select id="viewFollowState" resultType="int">
+		select count(follow_num)
+		from
+			follow
+		where
+			member_num=#{member_num} and blogger_num=#{blogger_num}
+	</select>
+</mapper>

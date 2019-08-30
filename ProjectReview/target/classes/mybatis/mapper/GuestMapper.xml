@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.GuestMapper">
+	<select id="selectGuestList" resultType="map">
+		select
+			g.guest_num,g.blogger_num,g.writer_num,g.guest_content,g.hidden_check,
+			date_format(g.guest_insertDate, '%Y-%m-%d %H:%i') as guest_insertDate,
+			m.member_nickname,m.member_profile,m.num_url,
+			(select count(*) from guest_reply where guest_reply.guest_num=g.guest_num) as reply_count
+		from
+			guest g
+		left join member m on g.writer_num=m.member_num
+		where
+			g.blogger_num=#{blogger_num}
+		<if test="hidden_check == 1 and searchTxtField neq ''">and (g.hidden_check=0 or g.writer_num=#{writer_num})</if>
+		<if test="hidden_check == 2 and searchTxtField neq ''">and g.hidden_check=0</if>
+			and
+				(m.member_nickname like concat('%',#{searchTxtField},'%') or g.guest_content like concat('%',#{searchTxtField},'%'))
+		order by
+			g.guest_insertDate desc
+		limit #{start},#{end}
+	</select>
+	
+	<!-- 게시글 총 개수 -->
+	<select id="selectGuestTotalCount" resultType="int">
+		select
+			count(*), m.member_nickname
+		from
+			guest g
+		left join member m on g.writer_num=m.member_num
+		where
+			g.blogger_num=#{blogger_num}
+		<if test="hidden_check == 1 and searchTxtField neq ''">and (g.hidden_check=0 or g.writer_num=#{writer_num})</if>
+		<if test="hidden_check == 2 and searchTxtField neq ''">and g.hidden_check=0</if>
+			and
+				(m.member_nickname like concat('%',#{searchTxtField},'%') or g.guest_content like concat('%',#{searchTxtField},'%'))
+	</select>
+
+	<!-- 방명록 번호로 조회 -->
+	<select id="selectGuestNum" resultType="GuestDTO">
+		select *
+		from
+			guest
+		where
+			guest_num=#{guest_num}
+	</select>
+	
+	<!-- 방명록 등록 -->
+	<insert id="insertGuest" useGeneratedKeys="true" keyProperty="guest_num">
+		insert into
+		guest(blogger_num,writer_num,guest_content,hidden_check,guest_insertDate,guest_updateDate)
+		values((SELECT member_num FROM member WHERE num_url=#{num_url}),#{writer_num},#{content},#{hidden_check},now(),now())
+	</insert>
+	
+	<!-- 방명록 수정 -->
+	<update id="updateGuest">
+		update
+			guest
+		set
+			guest_content=#{guest_content},hidden_check=#{hidden_check},guest_updateDate=now()
+		where
+			guest_num=#{guest_num}
+	</update>
+	
+	<!-- 방명록 삭제 -->
+	<delete id="deleteGuest" parameterType="int">
+		delete from
+			guest
+		where
+			guest.guest_num=#{guest_num}
+	</delete>
+</mapper>

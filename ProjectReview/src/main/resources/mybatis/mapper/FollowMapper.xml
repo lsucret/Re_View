@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.FollowMapper">
+	<!-- 팔로우 리스트 -->
+	<select id="selectFollowList" parameterType="int" resultType="MemberDTO">
+		select m.*
+		from
+			follow f
+		join member m on f.blogger_num=m.member_num and f.member_num=#{meNum}
+		order by
+			f.follow_date desc
+	</select>
+
+	<!-- 팔로워 리스트 -->
+	<select id="selectFollowerList" parameterType="int" resultType="MemberDTO">
+		select m.*
+		from
+			follow f
+		join member m on f.member_num=m.member_num and f.blogger_num=#{meNum}
+		order by
+			f.follow_date desc
+	</select>
+	
+	<!-- 팔로우 -->
+	<insert id="insertFollow" useGeneratedKeys="true" keyProperty="follow_num">
+		insert into
+		follow(member_num,blogger_num,follow_date)
+		values (#{member_num},(SELECT member_num FROM member WHERE num_url=#{blogger_url}),now())
+	</insert>
+
+	<!-- 언팔로우 -->
+	<delete id="deleteFollow">
+		delete from
+			follow
+		where
+			member_num=#{member_num} and blogger_num=(SELECT member_num FROM member WHERE num_url=#{blogger_url})
+	</delete>
+</mapper>

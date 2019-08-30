@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.ReviewDetailMapper">
+	<!-- 리뷰 조회수 증가 -->
+	<update id="reviewHitsUpdate">
+		UPDATE
+			review
+		SET
+			hits = hits + 1
+		WHERE
+			review_num = #{review_num}
+	</update>
+	
+	<!-- 리뷰 상세 -->
+	<select id="selectReviewDetail" resultType="map">
+		SELECT
+			r.review_num,r.review_title,r.review_content,r.title_img,r.title_color,r.hits,r.review_grade,
+			DATE_FORMAT(r.review_insertDate, '%Y-%m-%d %H:%i') AS review_insertDate,
+			DATE_FORMAT(r.review_updateDate, '%Y-%m-%d %H:%i') AS review_updateDate,
+			s.store_name, s.store_addr, s.store_lat, s.store_lng,
+			c.category_num,c.category_name,
+			m.member_num,m.member_nickname, m.member_profile, m.num_url
+		FROM
+			review r
+		LEFT JOIN store s ON r.review_num=s.review_num
+		LEFT JOIN category c ON r.category_num=c.category_num
+		LEFT JOIN member m ON r.member_num=m.member_num
+		WHERE r.review_num=#{review_num}
+	</select>
+	
+	<!-- 리뷰좋아요 상태 -->
+	<select id="selectReviewLike" resultType="map">
+		SELECT 
+			(SELECT COUNT(*) FROM review_heart WHERE review_num=#{review_num}) AS total,
+			(SELECT COUNT(*) FROM review_heart WHERE review_num=#{review_num} AND member_num=#{member_num}) AS state
+		FROM review_heart
+		WHERE review_num=#{review_num}
+		GROUP BY review_num
+	</select>
+</mapper>

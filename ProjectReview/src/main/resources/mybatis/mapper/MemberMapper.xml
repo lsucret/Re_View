@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.MemberMapper">
+
+	<!-- 회원가입 -->
+	<insert id="joinMember" useGeneratedKeys="true" keyProperty="member_num"> <!-- 등록된 회원번호 return -->
+		insert into
+		member(member_id,member_pw,member_nickname,member_name,member_phone,member_profile,member_insertDate,member_updateDate,member_lastLogin,num_url,blog_main)
+		values(#{member_id},#{member_pw},#{member_nickname},#{member_name},#{member_phone},'/img/default-profile.png',now(),now(),'','','map')
+	</insert>
+	
+	<!-- 회원번호 암호화. update 테이블명 set HEX(AES_ENCRYPT('컬럼'or'문자열', '암호화키')) -->
+	<update id="updateMemberNumDecrypt">
+		update member
+		set
+			num_url=(HEX(AES_ENCRYPT(#{member_num}, 'mNum')))
+		where
+			member_num=#{member_num};
+	</update>
+
+	<!-- 회원정보 조회 -->
+	<select id="selectMember" parameterType="String" resultType="MemberDTO">
+		select *
+		from
+			member
+		where
+			member_id=#{loginId}
+	</select>
+
+	<!-- 회원정보 업데이트 -->
+	<update id="updateMember" parameterType="MemberDTO">
+		update member
+		<set>
+			member_updateDate = now()
+			<if test="member_name != null">,member_name = #{member_name}</if>
+			<if test="member_nickname != null">,member_nickname = #{member_nickname}</if>
+			<if test="member_pw != null">,member_pw = #{member_pw}</if>
+			<if test="member_phone != null">,member_phone = #{member_phone}</if>
+			<if test="member_profile != null">,member_profile = #{member_profile}</if>
+		</set>
+		where
+			member_num = #{member_num}
+	</update>
+	
+	<!-- 아이디 중복체크 -->
+	<select id="idDuplicateCheck" resultType="MemberDTO">
+		select member_num
+		from member
+		where member_id=#{memberId}
+	</select>
+
+	<!-- 휴대폰 중복체크 -->
+	<select id="phoneDuplicateCheck" resultType="MemberDTO">
+		select member_num
+		from member
+		where member_phone = #{value}
+	</select>
+</mapper>

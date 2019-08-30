@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.GuestReplyMapper">
+	<!-- 댓글 조회 -->
+	<select id="selectGuestReplyList" resultType="map">
+		select
+			a.reply_num,a.guest_num,a.reply_content,date_format(a.reply_insertDate, '%Y-%m-%d %H:%i') as reply_insertDate,
+			m.member_nickname,m.member_profile,m.num_url
+		from
+			guest_reply a
+		left join member m on a.member_num=m.member_num
+		where
+		<if test="guest_num != null">a.guest_num=#{guest_num} order by a.reply_insertDate asc</if>
+		<if test="reply_num != null">a.reply_num=#{reply_num}</if>
+	</select>
+
+	<!-- 댓글 count -->
+	<select id="selectGuestReplyTotalCount" resultType="int">
+		select
+			count(*)
+		from
+			guest_reply
+		where
+			guest_num
+			<choose>
+				<when test="guest_num > 0">=#{guest_num}</when>
+				<otherwise>IN (SELECT guest_num FROM guest_reply WHERE reply_num=#{reply_num})</otherwise>
+			</choose>
+	</select>
+	
+	<!-- 방명록 번호 출력 -->
+	<select id="selectGuestNumFromReply" parameterType="int" resultType="int">
+		select
+			guest_reply.guest_num
+		from
+			guest_reply
+		where
+			guest_reply.reply_num=#{reply_num}
+	</select>
+	
+	<!-- 댓글 등록 -->
+	<insert id="insertGuestReply" useGeneratedKeys="true" keyProperty="reply_num">
+		insert into
+		guest_reply(guest_num,member_num,reply_content,reply_insertDate,reply_updateDate)
+		values(#{guest_num},#{member_num},#{reply_content},now(),now())
+	</insert>
+
+	<!-- 댓글 수정 -->
+	<update id="updateGuestReply">
+		update
+			guest_reply
+		set
+			reply_content=#{reply_content},reply_updateDate=now()
+		where
+			reply_num=#{reply_num}
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="deleteGuestReply" parameterType="int">
+		delete from
+			guest_reply
+		where
+			reply_num=#{reply_num}
+	</delete>
+
+	<!-- 방명록 삭제하면 해당 댓글도 삭제할 수 있도록 -->
+	<delete id="deleteGuestReplyGuest" parameterType="int">
+		delete from
+			guest_reply
+		where
+			guest_num=#{guest_num}
+	</delete>
+</mapper>

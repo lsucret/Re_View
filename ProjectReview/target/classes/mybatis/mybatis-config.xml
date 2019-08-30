@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<!-- Alias 설정 -->
+	<typeAliases>
+		<package name="com.project.review.dto" />
+	</typeAliases>
+
+	<!-- SQL Mapper 설정 -->
+	<mappers>
+		<mapper resource="/mybatis/mapper/AccountMapper.xml" />
+		<mapper resource="/mybatis/mapper/BlogMapper.xml" />
+		<mapper resource="/mybatis/mapper/CategoryMapper.xml" />
+		<mapper resource="/mybatis/mapper/FollowMapper.xml" />
+		<mapper resource="/mybatis/mapper/FollowStateMapper.xml" />
+		<mapper resource="/mybatis/mapper/GuestMapper.xml" />
+		<mapper resource="/mybatis/mapper/GuestReplyMapper.xml" />
+		<mapper resource="/mybatis/mapper/MainMapper.xml" />
+		<mapper resource="/mybatis/mapper/MemberMapper.xml" />
+		<mapper resource="/mybatis/mapper/MemberDefMapper.xml" />
+		<mapper resource="/mybatis/mapper/MessageMapper.xml" />
+		<mapper resource="/mybatis/mapper/ReviewDefMapper.xml" />
+		<mapper resource="/mybatis/mapper/ReviewDetailMapper.xml" />
+		<mapper resource="/mybatis/mapper/ReviewHeartMapper.xml" />
+		<mapper resource="/mybatis/mapper/ReviewListMapper.xml" />
+		<mapper resource="/mybatis/mapper/ReviewReplyMapper.xml" />
+		<mapper resource="/mybatis/mapper/StoreMapper.xml" />
+		<mapper resource="/mybatis/mapper/TimeLineMapper.xml" />
+	</mappers>
+</configuration>

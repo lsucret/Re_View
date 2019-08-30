@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.MemberDefMapper">
+	<!-- 암호화된 회원번호 복호화. AES_DECRYPT(UNHEX('컬럼'or'문자열'), '암호화키') -->
+	<select id="selectMemerNumDecrypt" parameterType="String" resultType="int">
+		select
+			IFNULL(MIN(AES_DECRYPT(UNHEX(num_url), 'mNum')), 0)
+		from
+			member
+		where
+			num_url=#{num_url};
+	</select>
+	
+	<!-- 블로그 메인 URL 호출 -->
+	<select id="selectBlogURL" parameterType="String" resultType="String">
+		select
+			member.blog_main
+		from
+			member
+		where
+			member.member_num=(
+				select
+					IFNULL(MIN(AES_DECRYPT(UNHEX(num_url), 'mNum')), 0)
+				from
+					member
+				where
+					num_url=#{num_url}
+			)
+	</select>
+	
+	<!-- 회원정보 조회 - where member_num -->
+	<select id="selectMemberNum" parameterType="int" resultType="MemberDTO">
+		select *
+		from
+			member
+		where
+			member_num=#{member_num}
+	</select>
+</mapper>

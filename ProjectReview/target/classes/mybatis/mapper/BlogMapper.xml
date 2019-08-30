@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.BlogMapper">
+	<!-- 블로그 사이드메뉴 이웃 수 출력 -->
+	<select id="selectFollowCnt" parameterType="int" resultType="FollowStateDTO">
+		select
+			(select count(follow_num) from follow where follow.member_num=#{bloggerNum}) as cfollow,
+			(select count(follow_num) from follow where follow.blogger_num=#{bloggerNum}) as cfollower
+		from follow
+			group by cfollow,cfollower
+	</select>
+	
+	<!-- 블로그 메인 설정 -->
+	<update id="updateBlogMainURL">
+		update member
+		set
+			blog_main=#{blog_main},member_updateDate=now()
+		where
+			member_num=#{member_num};
+	</update>
+</mapper>

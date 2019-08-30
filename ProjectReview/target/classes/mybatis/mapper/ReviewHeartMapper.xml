@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.ReviewHeartMapper">
+	<insert id="ReviewHeartAdd">
+		insert into review_heart(review_num, member_num, heart_date)
+		values(#{review_num},#{member_num},now())
+	</insert>
+	
+	<delete id="ReviewHeartCancel">
+		delete from review_heart
+		where
+			review_num=#{review_num} and member_num=#{member_num}
+	</delete>
+	
+	<select id="selectReviewHeart" resultType="map">
+		select
+			a.review_num,DATE_FORMAT(a.heart_date, '%Y-%m-%d %H:%i') AS heart_date,
+			b.review_title,b.title_img,b.title_color,b.review_grade,c.store_name,
+			d.member_nickname,d.member_profile,d.num_url,e.category_name,
+			(
+				SELECT COUNT(*) FROM review_heart
+				WHERE review_heart.review_num=b.review_num
+			) AS like_count
+		from
+			review_heart a
+		left join
+			review b on a.review_num=b.review_num
+      left join 
+			store c on a.review_num=c.review_num
+		left join 
+			member d on b.member_num=d.member_num
+		left join
+			category e on b.category_num=e.category_num
+
+		<include refid="search" />
+		
+		order by
+			<if test="sort eq 'nickname'">d.member_nickname ASC,</if>
+			<if test="sort eq 'store'">c.store_name ASC,</if>
+			<if test="sort eq 'grade'">b.review_grade DESC,</if>
+			<if test="sort eq 'like'">like_count DESC,</if>
+			a.heart_date DESC
+		
+		limit
+			#{start},12 
+	</select>
+
+	<select id="selectReviewHeartTotalCount" resultType="int">
+		SELECT COUNT(*) 
+		from 
+	       review_heart as a
+	   left join
+			review b on a.review_num=b.review_num
+		left join 
+			member d on d.member_num=a.member_num
+		left join 
+			store c on a.review_num=c.store_num
+		left join
+			category e on b.category_num=e.category_num
+			
+		<include refid="search" />
+										
+	</select>
+	
+	<sql id="search">
+		where
+			a.member_num=(select member_num from member where num_url=#{num_url})
+			
+			<if test="category neq ''">and e.category_name=#{category}</if>
+			
+			and (
+				c.store_name like concat('%',#{searchTxtField},'%')
+					or
+				b.review_title like concat('%',#{searchTxtField},'%')
+					or
+				d.member_nickname like concat('%',#{searchTxtField},'%')
+			)
+	</sql>
+
+	<!-- 해당 페이지의 좋아요 개수를 카운트 -->
+	<select id="CountReviewHeart" resultType="int">
+		select
+			count(*)
+		from
+			review_heart
+		where review_num=#{review_num}
+	</select>
+	
+	<!-- 리뷰 삭제시 삭제 -->
+	<delete id="deleteWithReview" parameterType="int">
+		DELETE FROM	
+			review_heart 
+		WHERE 
+			review_num=#{review_num};
+	</delete>
+</mapper>

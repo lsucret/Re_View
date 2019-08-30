@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.CategoryMapper">
+	<select id="categoryList" resultType="CategoryDTO">
+		select * from category order by category.category_name asc
+	</select>
+
+	<select id="selectCategoryCodeNum" parameterType="String" resultType="int">
+		select category_num from category where category_code=#{category_code}
+	</select>
+</mapper>

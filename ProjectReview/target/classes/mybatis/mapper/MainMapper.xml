@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.MainMapper">
+	<!-- 모든 store 출력 -->
+	<select id="selectMainMap" resultType="map">
+		SELECT 
+			b.review_num,b.review_title,a.store_name,a.store_addr,a.store_lat,a.store_lng,
+			round(avg(review_grade),1) AS avg_grade,
+			(6371 * acos(COS(radians(#{lat})) * cos(radians(a.store_lat)) * cos(radians(a.store_lng) - radians(#{lng})) + sin(radians(#{lat})) * sin(RADIANS(a.store_lat)))) AS DISTANCE,
+			(SELECT COUNT(*) FROM store s WHERE s.store_lat=a.store_lat AND s.store_lng=a.store_lng) AS list_count
+		FROM 
+			store a
+		JOIN review b ON a.review_num=b.review_num
+		GROUP BY 
+			a.store_lat
+		HAVING 
+			a.store_lat=a.store_lat AND a.store_lng=a.store_lng
+		ORDER BY 
+			DISTANCE
+	</select>
+	
+	<!-- 맵에서 마커 클릭했을 때, 커스텀 오버레이 출력용 정보. 작업중.. -->
+	<select id="selectMainMapReviewInfo" resultType="map">
+		SELECT
+			a.review_title,a.review_grade,a.member_num,a.category_num,a.review_num,a.review_insertDate,
+			b.store_name,
+    		c.num_url, c.member_nickname, c.member_profile,
+    		(SELECT count(*) FROM follow f WHERE f.member_num=#{member_num} AND f.blogger_num=a.member_num) AS isfollow
+		FROM 
+			review a
+		JOIN store b ON a.review_num=b.review_num
+		JOIN member c ON a.member_num=c.member_num
+		WHERE
+			b.store_lat=#{lat} AND b.store_lng=#{lng} 
+		ORDER BY 
+			isfollow DESC, a.review_insertDate DESC
+	</select>
+	
+	<!-- 키워드로 가게 검색 -->
+	<select id="selectMainMapReviewSearch" resultType="map">
+		SELECT 
+			a.store_name,a.store_lat,a.store_lng,a.store_addr,
+			round(avg(review_grade),1) AS avg_grade
+		FROM 
+			store a
+		JOIN review b ON a.review_num=b.review_num
+		WHERE	
+			<foreach collection="keyword" item="item" separator="OR">
+				a.store_name like '%${item}%' OR a.store_addr like '%${item}%'
+			</foreach>
+		GROUP BY 
+			a.store_lat
+		HAVING 
+			a.store_lat=a.store_lat AND a.store_lng=a.store_lng
+
+	</select>
+	
+	<!-- 리뷰 게시글 베스트 4개 메인에 출력 -->
+	<select id="selectTop4ReviewList" resultType="map">
+		SELECT
+			a.review_grade,a.hits,a.review_num,a.review_title,a.title_color,a.title_img,b.num_url,b.member_nickname,b.member_profile,e.store_name
+			,DATE_FORMAT(a.review_insertDate, '%Y-%m-%d') AS review_insertDate,c.category_name,IFNULL(d.reviewlike_count, 0) AS reviewlike_week,
+			(SELECT COUNT(*) FROM review_reply WHERE review_reply.review_num=a.review_num) AS reply_count
+		FROM
+			review a
+		LEFT JOIN member b ON a.member_num=b.member_num
+		LEFT JOIN category c ON a.category_num=c.category_num
+		LEFT JOIN
+			(
+				SELECT review_num,COUNT(heart_date) AS reviewlike_count
+				FROM review_heart
+				WHERE
+				<![CDATA[
+				 	heart_date < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(NOW()) DAY)
+				  	AND
+				  	heart_date >= DATE_SUB(CURDATE(), INTERVAL (WEEKDAY(NOW())+7) DAY)
+				]]>
+				GROUP BY review_num
+			) d ON a.review_num = d.review_num
+		LEFT JOIN (SELECT store_name,review_num FROM store) e ON a.review_num=e.review_num
+		having
+			a.hits > 0 and reviewlike_week > 0 
+		ORDER BY reviewlike_week DESC, hits DESC, a.review_insertDate DESC
+		LIMIT 4;
+	</select>
+	
+	<select id="lastMonthBestUser" resultType="map">
+		SELECT member.member_num,member.member_nickname,member.member_profile,member.num_url,member.blog_main,
+		(
+			SELECT COUNT(*) FROM review
+			WHERE review.member_num=member.member_num and
+				<![CDATA[
+				review.review_insertDate >= date_add(date_add(LAST_DAY(NOW()), interval 1 DAY),INTERVAL -2 MONTH)
+				and review.review_insertDate < LAST_DAY(NOW() - interval 1 MONTH)
+				]]>
+		) as month_total
+		FROM
+			member
+		HAVING month_total > 0
+		ORDER BY month_total DESC
+		LIMIT 5
+	</select>
+	
+	<!-- 유저 검색 -->
+	<select id="selectUserList" resultType="map">
+		<!-- SUBSTRING_INDEX(member.member_id, '@', 1) : @뒤에는 검색대상 X -->
+		SELECT
+			member.member_num,SUBSTRING_INDEX(member.member_id, '@', 1) AS member_id,member.member_nickname,member.member_profile,member.num_url,
+			(SELECT follow_num FROM follow WHERE member_num=#{member_num} AND blogger_num=member.member_num) AS follow_state,
+			LENGTH(REPLACE(SUBSTRING_INDEX(member.member_id, '@', 1),#{searchTxtField},'')) AS 'idcheck',
+			LENGTH(REPLACE(member.member_nickname,#{searchTxtField},'')) AS 'nickcheck'
+		From
+			member
+		HAVING
+			member_num != #{member_num} and (
+				member_id LIKE concat('%',#{searchTxtField},'%')
+				OR member_nickname LIKE concat('%',#{searchTxtField},'%')
+			)
+		ORDER BY
+			follow_state desc, idcheck asc, nickcheck asc
+	</select>
+</mapper>

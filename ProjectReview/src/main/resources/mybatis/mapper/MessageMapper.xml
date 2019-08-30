@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.MessageMapper">
+	<insert id="sendMessage" useGeneratedKeys="true" keyProperty="message_num">
+		INSERT INTO 
+			message(message_sender, message_receiver, message_title, message_content, message_sendDate, message_read, message_readDate, message_sDelChk, message_rDelChk)
+		VALUES
+			(#{message_sender}, #{message_receiver}, #{message_title}, #{message_content}, now(), 0, "", 0, 0)
+	</insert>
+	
+	<select id="messageList" resultType="MessageDTO">
+		SELECT
+			a.message_num, a.message_sender, a.message_receiver, a.message_title, a.message_content,
+			DATE_FORMAT(a.message_sendDate, '%Y-%m-%d %H:%i') AS message_sendDate,
+			DATE_FORMAT(a.message_readDate, '%Y-%m-%d %H:%i') AS message_readDate,a.message_read,a.message_sDelChk, a.message_rDelChk,
+			b.member_nickname, b.member_profile, b.num_url
+		FROM
+			message a, member b
+		WHERE
+			<if test="tab eq 'receive'">(a.message_receiver = #{member_num} AND b.member_num = a.message_sender) AND a.message_rDelChk = 0</if>
+			<if test="message_read != null">AND a.message_read = 0</if>
+			<if test="tab eq 'send'">(a.message_sender = #{member_num} AND b.member_num = a.message_receiver) AND a.message_sDelChk = 0</if>
+		ORDER BY
+			message_sendDate desc, message_num desc
+   </select>
+   
+   <select id="messageDetail" resultType="MessageDTO">
+		select
+			message_num,
+			<if test="tab eq 'receive'">message_sender,(SELECT member_nickname FROM member WHERE member_num=message_sender)</if>
+			<if test="tab eq 'send'">message_receiver,(SELECT member_nickname FROM member WHERE member_num=message_receiver)</if>
+			 AS member_nickname,message_content,DATE_FORMAT(message_readDate, '%Y-%m-%d %H:%i') AS message_readDate
+		from
+			message
+		where
+			message_num = #{message_num}
+			<if test="tab eq 'receive'"> and message_receiver = #{member_num} and message_rDelChk = 0</if>
+			<if test="tab eq 'send'"> and message_sender = #{member_num} and message_sDelChk = 0</if>
+   </select>
+   
+   <update id="updateMessageReadCheck">
+		UPDATE 
+			message
+		SET
+			message_read = 1, message_readDate = now()
+		WHERE 
+			message_num = #{message_num} and message_receiver = #{member_num} and message_read = 0
+	</update>
+	
+	<update id="updateDelChk">
+		UPDATE 
+			message
+		SET
+			<if test="delChk == 0">message_rDelChk = 1</if>
+			<if test="delChk == 1">message_sDelChk = 1</if>
+		WHERE
+			message_num = #{message_num}
+	</update>
+	
+	<delete id="deleteMessage">
+		DELETE FROM
+			message
+		WHERE
+			message_num = #{message_num} and message_rDelChk = 1 and message_sDelChk = 1
+	</delete>
+	
+	<select id="newMessageTotalCount" resultType="int">
+		SELECT COUNT(*) FROM message
+		WHERE message.message_receiver=#{member_num} AND message.message_read=0 AND message.message_rDelChk=0
+	</select>
+</mapper>

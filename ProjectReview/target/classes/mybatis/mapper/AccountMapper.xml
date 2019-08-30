@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.AccountMapper">
+	<!-- 로그인 -->
+	<select id="login" resultType="MemberDTO">
+		select *
+		from
+			member
+		where 
+			member_id=#{member_id}
+	</select>
+	
+	<!-- 로그인 시간-->
+	<update id="loginTime" parameterType="loginDTO">
+		update
+			member
+		set
+			member_lastLogin=now()
+		where
+			member_id=#{member_id}
+	</update>
+
+	<!-- 아이디/비밀번호 찾기 - 계정 존재여부 체크 -->
+	<select id="userAccountSearch" resultType="MemberDTO">
+		select *
+		from
+			member
+		where
+			member_phone=#{member_phone} and (member_name=#{member_name} or member_id=#{member_id})
+	</select>
+
+	<!-- 비밀번호 찾기 - 새 비밀번호 등록 -->
+	<update id="userAccountNewPw" parameterType="MemberDTO">
+		update
+			member
+		set
+			member_updateDate=now(),member_pw=#{member_pw}
+		where
+			(member_id=#{member_id} and member_phone=#{member_phone})
+	</update>
+	
+	<!-- 회원탈퇴 -->
+	<delete id="memberLeave" parameterType="int">
+		delete from follow where member_num=#{member_num} or blogger_num=#{member_num};
+		delete from guest_reply where member_num=#{member_num};
+		delete from guest where blogger_num=#{member_num} or writer_num=#{member_num};
+		delete from message where message_sender=#{member_num} or message_receiver=#{member_num};
+		delete from review_heart where member_num=#{member_num};
+		delete from review_reply where member_num=#{member_num};
+		delete from store where review_num in (select review_num from review where member_num=#{member_num});
+		delete from review where member_num=#{member_num};
+		delete from member where member_num=#{member_num};
+	</delete>
+</mapper>

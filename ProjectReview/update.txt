@@ -1,0 +1,16 @@
+// 업데이트 자료
+- 08.09
+1) ALTER TABLE `follow`
+		CHANGE COLUMN `member_me` `member_num` INT(11) NOT NULL AFTER `follow_num`,
+		CHANGE COLUMN `member_you` `blogger_num` INT(11) NOT NULL AFTER `member_num`;
+
+- 08.13
+1) ALTER TABLE `message`
+		COMMENT='메세지함\r\nmessage_read : 메시지 읽음 여부 체크 (0은 읽지않음, 1은 읽음)\r\nmessage_sDelChk : 보낸이 메세지 삭제 여부 체크 (0은 삭제안함, 1은 삭제됨)\r\nmessage_rDelChk : 받은이 메세지 삭제 여부 체크 (0은 삭제안함, 1은 삭제됨)',
+		ADD COLUMN `message_title` VARCHAR(100) NOT NULL DEFAULT '(제목없음)' AFTER `message_receiver`;
+2) update store set store_lng=format(store_lng,8);update store set store_lat=format(store_lat,8);
+
+- 08.19
+1) ALTER TABLE `member`
+	DROP COLUMN `member_grade`,
+	DROP COLUMN `member_admin`;

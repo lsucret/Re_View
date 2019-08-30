@@ -1,0 +1,160 @@
+@charset "UTF-8";
+
+@import url("//fonts.googleapis.com/css?family=Nanum+Gothic&display=swap");
+
+.wrap {
+	position: absolute;
+	left: 0;
+	bottom: 0px;
+	width: 288px;
+	height: 118px;
+	margin-left: -132px;
+	text-align: left;
+	overflow: auto;
+	font-size: 1em;
+	font-family: 'Nanum Gothic';
+	line-height: 1.5;
+}
+
+.wrap .info {
+	width: 286px;
+	height: 114px;
+	border-radius: .25rem;
+	border-bottom: 2px solid #ccc;
+	border-right: 1px solid #ccc;
+	overflow: hidden;
+	background: #fff;
+}
+
+.wrap .info:nth-child(1) {
+	border: 0;
+	box-shadow: 0px 1px 2px #888;
+}
+
+.info .title {
+	padding: 5px 0 0 5px;
+	background: #EFEFEF;
+	border-bottom: 1px solid #EFEFEF;
+	font-size: 1em;
+	font-weight: bold;
+	height: 32px;
+}
+
+.info .close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	color: #888;
+	width: 17px;
+	height: 17px;
+	background: url('http://t1.daumcdn.net/localimg/localimages/07/mapapidoc/overlay_close.png');
+}
+
+.info .close:hover {
+	cursor: pointer;
+}
+
+.info .body {
+	position: relative;
+	overflow: hidden;
+}
+
+.info .desc {
+	position: relative;
+	margin: 10px 0 0 85px;
+	height: 75px;
+}
+
+.desc .ellipsis {
+	font-size: 15px;
+	overflow: visible;
+	text-overflow: ellipsis;
+	white-space: pre-wrap;
+	line-height: 1em;
+	margin-bottom: 15px;
+}
+
+.desc .jibun {
+	font-size: 14px;
+	color: #888;
+	margin-bottom: 0;
+}
+
+.info .reviewtitle {
+	font-size: 14px;
+	color: #888;
+	margin-bottom: 3px;
+	margin-left: 5px;
+	margin-right: 10px;
+	width: 150px;
+}
+
+.info div.img {
+	position: absolute;
+	top: 6px;
+	left: 5px;
+	width: 73px;
+	height: 71px;
+	border: 1px solid #ddd;
+	color: #888;
+	overflow: hidden;
+}
+
+/* ---------------------------------------------------
+    BLOG MAIN MAP
+----------------------------------------------------- */
+.custom_zoomcontrol {
+	position: absolute;
+	width: 36px;
+	overflow: hidden;
+	z-index: 1;
+	background-color: #FBFBFB;
+	border: 1px solid #888;
+}
+
+.custom_zoomcontrol span {
+	display: block;
+	width: 36px;
+	height: 36px;
+	text-align: center;
+	cursor: pointer;
+	padding-top: 10.5px;
+}
+
+.custom_zoomcontrol span img {
+	width: 15px;
+	display: block;
+	margin: auto;
+}
+
+.custom_zoomcontrol span:first-child {
+	border-bottom: 1px solid #888;
+}
+
+.custom_curLocation {
+	position: absolute;
+	width: 36px;
+	height: 36px;
+	overflow: hidden;
+	z-index: 1;
+	background-color: #FBFBFB;
+	border: 1px solid #888;
+}
+
+.custom_curLocation span {
+	display: block;
+	width: 36px;
+	height: 34px;
+	cursor: pointer;
+	padding-top: 7px;
+}
+
+.custom_curLocation span img {
+	display: block;
+	width: 20px;
+	margin-left: 7px;
+}
+
+.pnt {
+	cursor: pointer;
+}

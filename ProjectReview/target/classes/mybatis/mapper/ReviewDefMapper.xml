@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.ReviewDefMapper">
+	<insert id="insertReview" useGeneratedKeys="true" keyProperty="review_num">
+		insert into
+		review(member_num,category_num,review_title,review_content,title_color,title_img,hits,review_grade,review_insertDate,review_updateDate)
+		values(
+			#{member_num},#{category_num},#{review_title},#{review_content},#{title_color},'',0,#{review_grade},now(),now())
+	</insert>
+
+	<!-- 리뷰번호로 리뷰 데이터 호출. +) 내가 작성한 글이 맞는지 체크 -->
+	<select id = "selectReviewNum" resultType="map">
+		SELECT 
+			r.review_num, r.member_num, r.category_num, r.review_title, r.review_content, r.review_grade,
+			s.store_name, s.store_addr, s.store_lat, s.store_lng,
+			c.category_code
+		FROM 
+			review r
+		LEFT JOIN category c ON r.category_num=c.category_num
+		LEFT JOIN store s ON r.review_num=s.review_num
+		WHERE 
+			r.member_num = #{member_num} AND r.review_num = #{review_num}
+	</select>
+	
+	<!-- 리뷰 수정  -->
+	<update id="updateReview">			
+		UPDATE 
+			review
+		SET
+			review_title = #{review_title}, review_content = #{review_content}, category_num = #{category_num}, review_grade = #{review_grade},
+			title_color = #{title_color} , review_updateDate = now()
+		WHERE 
+			review_num = #{review_num} and member_num = #{member_num}
+	</update>
+	
+	<update id="updateReviewContentImgUrl">
+		update review
+		set
+			review_content=replace(review_content, #{original_url}, #{update_url})
+		where review_num=#{review_num}
+	</update>
+	
+	<update id="updateReviewTitleImgUrl">
+		update review
+		set
+			title_img=#{title_img}
+		where review_num=#{review_num}
+	</update>
+				
+	<!-- 리뷰 삭제 -->
+	<delete id="deleteReview">
+		DELETE FROM	
+			review 
+		WHERE 
+			review_num=#{review_num};
+	</delete>
+</mapper>

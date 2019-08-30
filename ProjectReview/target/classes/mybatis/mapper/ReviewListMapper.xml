@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.ReviewListMapper">
+	<!-- 리뷰리스트(맵) 불러오기 -->
+	<select id="selectMapToggle" parameterType="String" resultType="map">
+		SELECT DISTINCT
+			a.review_num,a.member_num,a.category_num,a.review_title,a.review_content,a.title_color,a.title_img,a.review_grade,a.hits,
+			b.store_name,b.store_addr,b.store_lat,b.store_lng,
+			c.category_name,
+			d.num_url,d.member_nickname,
+			(SELECT COUNT(member_num) FROM review_heart WHERE review_heart.review_num=a.review_num) AS heart_count,
+			(SELECT COUNT(*) FROM review_reply WHERE review_reply.review_num=a.review_num) AS reply_count
+		FROM 
+			review a 
+		LEFT JOIN store b ON a.review_num = b.review_num
+		LEFT JOIN category c ON a.category_num=c.category_num
+		LEFT JOIN member d ON a.member_num = d.member_num
+		<where> 
+			<if test="value != null">
+				a.member_num = #{value}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 리뷰리스트(리스트) 불러오기 -->
+	<select id="selectListToggle" resultType="map">
+		SELECT DISTINCT
+			r.member_num,r.review_num,r.review_title,r.review_content,r.title_color,r.title_img,r.review_grade,r.hits,
+			r.review_insertDate AS original_date,r.review_insertDate >= DATE_ADD(NOW(),INTERVAL -2 DAY) AS alert,
+			DATE_FORMAT(r.review_insertDate, '%Y-%b-%d') AS review_insertDate,
+			s.store_name,s.store_addr,
+			c.category_name,
+			m.num_url,m.member_nickname,
+			(SELECT COUNT(*) FROM review_heart WHERE review_heart.review_num=r.review_num) AS like_count,
+			(SELECT COUNT(*) FROM review_reply WHERE review_reply.review_num=r.review_num) AS reply_count
+		FROM 
+			review r 
+		LEFT JOIN store s ON r.review_num = s.review_num
+		LEFT JOIN category c ON r.category_num = c.category_num
+		LEFT JOIN member m ON r.member_num = m.member_num
+		<include refid="search"></include>
+		ORDER BY
+			<if test="sort eq 'store'">s.store_name ASC,</if>
+			<if test="sort eq 'grade'">r.review_grade DESC,</if>
+			<if test="sort eq 'like'">like_count DESC,</if>
+			original_date DESC
+		LIMIT
+			#{start},#{end}
+	</select>
+	
+	<!-- 블로거의 리뷰글 갯수 조회 -->
+	<select id="selectReviewListCnt" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM 
+			review r 
+		LEFT JOIN store s ON r.review_num = s.review_num
+		LEFT JOIN category c ON r.category_num = c.category_num
+		<include refid="search"></include>
+	</select>
+	
+	<sql id="search">
+		where r.member_num=
+		<choose>
+			<when test="blogger_num != null">#{blogger_num}</when>
+			<otherwise>(select member_num from member where num_url=#{num_url})</otherwise>
+		</choose>
+		and
+		<if test="category neq ''">c.category_name=#{category} and </if>
+		(r.review_title like concat('%',#{searchTxtField},'%') or r.review_content like concat('%',#{searchTxtField},'%')
+		 or s.store_name like concat('%',#{searchTxtField},'%') or s.store_addr like concat('%',#{searchTxtField},'%'))
+	</sql>
+</mapper>

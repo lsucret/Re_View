@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.review.TimeLineMapper">
+	<select id="timelineList" resultType="map">
+		SELECT
+			m.member_nickname,m.member_profile,m.num_url,
+			r.review_num,r.review_title,r.review_content,r.title_color,r.title_img,r.hits,r.review_grade,
+			DATE_FORMAT(r.review_insertDate, '%Y-%m-%d') AS review_insertDate,
+			r.review_insertDate >= DATE_ADD(now(),interval -2 DAY) AS alert,
+			s.store_name,
+			(SELECT COUNT(member_num) FROM review_heart WHERE review_heart.review_num=r.review_num) AS heart_count,
+			(SELECT COUNT(*) FROM review_reply WHERE review_reply.review_num=r.review_num) AS reply_count
+		FROM
+			review r
+		LEFT JOIN member m ON r.member_num=m.member_num
+		LEFT JOIN store s ON s.review_num=r.review_num
+		WHERE
+			r.member_num IN (SELECT blogger_num FROM follow WHERE member_num=#{member_num}) AND
+			r.review_insertDate > date_add(now(),interval -7 DAY)
+		ORDER BY
+			r.review_insertDate desc
+		LIMIT
+			#{start},#{end}
+	</select>
+</mapper>
